@@ -37,14 +37,61 @@ for ind in range(height):
 for ind in range(len(bat)):
     win.addch(bat[ind][1], bat[ind][0], '#')
 
+# Pong Ball details
+pong_ball = [[30, 5], [32, 13], [34, 15]]
+index = 0
+slope_x = 1
+slope_y = 1
+in_x = pong_ball[0][0]
+in_y = pong_ball[0][1]
+
+
+def get_pong_coords(in_x, in_y, slope_x, slope_y):
+    clear_prev_pixel = True
+    out_x = in_x + slope_x
+    out_y = in_y + slope_y
+    if [out_x, out_y] in bat:
+        slope_x = -1
+        slope_y = -bat.index([out_x, out_y])
+        clear_prev_pixel = False
+    if out_x <= int((width - 1) / 2):
+        out_x = int((width - 1) / 2)
+        slope_x = -slope_x
+        # clear_prev_pixel = False
+    if out_x >= width - 1:
+        out_x = pong_ball[0][0]
+        out_y = pong_ball[0][1]
+        slope_x = 1
+        slope_y = 1
+        return out_x, out_y, slope_x, slope_y, True, clear_prev_pixel
+    if (out_y > height - 1) or (out_y < 1):
+        clear_prev_pixel = False
+        if (out_y < 1):
+            clear_prev_pixel = True
+        out_y = in_y - slope_y
+        slope_y = -slope_y
+    return out_x, out_y, slope_x, slope_y, False, clear_prev_pixel
+
+
 while key != 27:
+    """Game will end when user presses ESC key
+    """
     win.border(0)
     title_string = " Score: {:04d} {:>19} {:<23}".format(score%10000, "SOLO PONG", " ")
     win.addstr(0, 2, title_string)
     help_string = "{} {}".format(" Controls: UP DOWN ───", "SPACE - PAUSE/RESUME ")
     win.addstr(height - 1, 9, help_string)
-    # win.timeout(1)
 
+    tmp_x = in_x
+    tmp_y = in_y
+    in_x, in_y, slope_x, slope_y, out, clear_prev_pixel = get_pong_coords(in_x, in_y, slope_x, slope_y)
+    if clear_prev_pixel:
+        win.addch(tmp_y, tmp_x, " ")
+    if out:
+        score -= 1
+    win.addch(in_y, in_x, "*")
+    win.timeout(230)
+    index += 1
     key = win.getch()
 
     """Space will pause until another space is pressed
@@ -64,15 +111,15 @@ while key != 27:
         pass
 
     if key == KEY_UP and not bat[0][1] == 1:
-            win.addch(bat[0][1] - 1, bat[0][0], '#')
-            win.addch(bat[-1][1], bat[-1][0], ' ')
-            for ind in range(len(bat)):
-                bat[ind][1] -= 1
+        win.addch(bat[0][1] - 1, bat[0][0], '#')
+        win.addch(bat[-1][1], bat[-1][0], ' ')
+        for ind in range(len(bat)):
+            bat[ind][1] -= 1
     elif key == KEY_DOWN and not bat[-1][1] == height - 2:
-            win.addch(bat[0][1], bat[0][0], ' ')
-            win.addch(bat[-1][1] + 1, bat[-1][0], '#')
-            for ind in range(len(bat)):
-                bat[ind][1] += 1
+        win.addch(bat[0][1], bat[0][0], ' ')
+        win.addch(bat[-1][1] + 1, bat[-1][0], '#')
+        for ind in range(len(bat)):
+            bat[ind][1] += 1
 
 curses.endwin()
 print("\nScore - " + str(score))
